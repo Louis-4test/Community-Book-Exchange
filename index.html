@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Book Exchange | Home</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="index.html" class="logo">
+                    <i class="fas fa-book-open"></i>
+                    <span>BookExchange</span>
+                </a>
+                
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html" class="active">Home</a></li>
+                    <li><a href="books.html">Browse Books</a></li>
+                    <li><a href="auth.html">Login/Register</a></li>
+                    <li><a href="about.html">About</a></li>
+                </ul>
+                
+                <div class="user-actions">
+                    <a href="auth.html" class="btn btn-outline">Sign In</a>
+                    <a href="auth.html?register=true" class="btn btn-primary">Register</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Share Books, Share Knowledge</h1>
+                <p>Join our community of book lovers to exchange books, discover new reads, and connect with fellow readers.</p>
+                <div class="hero-actions">
+                    <a href="books.html" class="btn btn-primary btn-large">Browse Books</a>
+                    <a href="auth.html?register=true" class="btn btn-secondary btn-large">Join Now</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Books on shelf">
+            </div>
+        </section>
+
+        <!-- Featured Books Section -->
+        <section class="featured-section">
+            <div class="section-header">
+                <h2>Featured Books</h2>
+                <p>Recently added books available for exchange</p>
+            </div>
+            
+            <div class="books-grid">
+                <!-- Book Card 1 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Book Cover">
+                        <span class="book-condition">Like New</span>
+                    </div>
+                    <div class="book-info">
+                        <h3 class="book-title">The Silent Echo</h3>
+                        <p class="book-author">By Maria Rodriguez</p>
+                        <div class="book-genre">Fiction</div>
+                        <p class="book-description">A gripping mystery novel about a detective solving a decades-old cold case in a small coastal town.</p>
+                        <div class="book-actions">
+                            <button class="btn-details" data-book="1">View Details</button>
+                            <button class="btn-request">Request Exchange</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Book Card 2 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=698&q=80" alt="Book Cover">
+                        <span class="book-condition">Good</span>
+                    </div>
+                    <div class="book-info">
+                        <h3 class="book-title">Cosmic Patterns</h3>
+                        <p class="book-author">By David Chen</p>
+                        <div class="book-genre">Science</div>
+                        <p class="book-description">Exploring the mathematical patterns that govern the universe, from galaxies to subatomic particles.</p>
+                        <div class="book-actions">
+                            <button class="btn-details" data-book="2">View Details</button>
+                            <button class="btn-request">Request Exchange</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Book Card 3 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <img src="https://images.unsplash.com/photo-1541963463532-d68292c34b19?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=688&q=80" alt="Book Cover">
+                        <span class="book-condition">Excellent</span>
+                    </div>
+                    <div class="book-info">
+                        <h3 class="book-title">The Lost Kingdom</h3>
+                        <p class="book-author">By Elena Petrova</p>
+                        <div class="book-genre">Fantasy</div>
+                        <p class="book-description">An epic fantasy tale of a forgotten kingdom's rise from the ashes and the hero destined to restore it.</p>
+                        <div class="book-actions">
+                            <button class="btn-details" data-book="3">View Details</button>
+                            <button class="btn-request">Request Exchange</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-footer">
+                <a href="books.html" class="btn btn-outline">View All Books</a>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section class="how-it-works">
+            <div class="section-header">
+                <h2>How It Works</h2>
+                <p>Exchange books in three simple steps</p>
+            </div>
+            
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Create an Account</h3>
+                        <p>Register for free and create your profile to join our book-loving community.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>List Your Books</h3>
+                        <p>Add books you're willing to exchange with details about condition and genre.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Browse & Exchange</h3>
+                        <p>Search for books you'd like to read and request exchanges with other members.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>BookExchange</h3>
+                <p>Connecting readers through the joy of sharing books since 2023.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="books.html">Browse Books</a></li>
+                    <li><a href="auth.html">Login/Register</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Contact Info</h4>
+                <ul class="contact-info">
+                    <li><i class="fas fa-map-marker-alt"></i> +237 Carrefour Etou-egbe, Yaounde Cameroon</li>
+                    <li><i class="fas fa-phone"></i> +237 679455965</li>
+                    <li><i class="fas fa-envelope"></i> fola.louis@yibs.org</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2023 Community Book Exchange. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Book Details Modal -->
+    <div class="modal" id="bookModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <div class="modal-body" id="modalBody">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
