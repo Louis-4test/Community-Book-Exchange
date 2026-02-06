@@ -345,7 +345,6 @@ img {
     color: #555;
     margin-bottom: 1.5rem;
     display: -webkit-box;
-    
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -939,6 +938,176 @@ footer {
     height: 50px;
     animation: spin 1s linear infinite;
     margin: 0 auto 1rem;
+}
+
+/* Flash Messages */
+.flash-message {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001;
+    min-width: 300px;
+    max-width: 500px;
+    width: 90%;
+    animation: slideIn 0.3s ease;
+}
+
+.flash-content {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid var(--success-color);
+}
+
+.flash-success .flash-content {
+    border-left-color: var(--success-color);
+}
+
+.flash-error .flash-content {
+    border-left-color: var(--accent-color);
+}
+
+.flash-warning .flash-content {
+    border-left-color: var(--warning-color);
+}
+
+.flash-info .flash-content {
+    border-left-color: var(--secondary-color);
+}
+
+.flash-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--gray-color);
+    margin-left: 1rem;
+}
+
+.flash-close:hover {
+    color: var(--accent-color);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* User Greeting */
+.user-greeting {
+    margin-right: 1rem;
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+/* Greeting Text */
+.greeting {
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+    font-weight: 500;
+}
+
+/* Results Info */
+.results-info {
+    text-align: center;
+    margin-top: 2rem;
+    color: var(--gray-color);
+    font-style: italic;
+}
+
+/* Search Form */
+.search-form {
+    width: 100%;
+}
+
+/* Pagination Links */
+.pagination a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Form Error States */
+.form-group input.error,
+.form-group textarea.error,
+.form-group select.error {
+    border-color: var(--accent-color);
+}
+
+/* Book Modal Content */
+.book-modal-content {
+    padding: 1rem;
+}
+
+.book-modal-header {
+    margin-bottom: 1.5rem;
+}
+
+.book-modal-author {
+    color: var(--gray-color);
+    font-style: italic;
+}
+
+.book-modal-details {
+    background-color: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1.5rem;
+}
+
+.detail-row {
+    display: flex;
+    margin-bottom: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.detail-item {
+    flex: 1;
+    min-width: 200px;
+    margin-bottom: 0.5rem;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-right: 0.5rem;
+}
+
+.detail-value {
+    color: var(--dark-color);
+}
+
+.book-modal-description h3 {
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.book-modal-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* Responsive adjustments for flash messages */
+@media (max-width: 576px) {
+    .flash-message {
+        width: 95%;
+        top: 70px;
+    }
+    
+    .flash-content {
+        padding: 0.8rem 1rem;
+    }
 }
 
 @keyframes spin {

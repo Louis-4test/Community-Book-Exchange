@@ -863,4 +863,291 @@ function initializeBookSearch() {
             }
         }
     }
+
+
+    // Keep the existing JavaScript functionality from Module 1
+// Remove duplicate functions that are now handled by PHP
+
+// Mobile Menu Toggle (unchanged)
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const navMenu = document.getElementById('navMenu');
+
+if (mobileMenuBtn && navMenu) {
+    mobileMenuBtn.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+        mobileMenuBtn.innerHTML = navMenu.classList.contains('active') 
+            ? '<i class="fas fa-times"></i>' 
+            : '<i class="fas fa-bars"></i>';
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!navMenu.contains(e.target) && !mobileMenuBtn.contains(e.target) && navMenu.classList.contains('active')) {
+            navMenu.classList.remove('active');
+            mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+    });
+}
+
+// Book Details Modal (modified to work with PHP)
+document.addEventListener('DOMContentLoaded', function() {
+    const detailButtons = document.querySelectorAll('.btn-details');
+    const modal = document.getElementById('bookModal');
+    const modalClose = document.getElementById('modalClose');
+    
+    if (detailButtons.length > 0) {
+        detailButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const bookId = this.getAttribute('data-book');
+                // In a real app, this would fetch from an API
+                // For now, we'll use the JavaScript function from Module 1
+                openBookModal(bookId);
+            });
+        });
+    }
+    
+    if (modalClose) {
+        modalClose.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+    }
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            modal.classList.remove('active');
+        }
+    });
+    
+    // FAQ Accordion (unchanged)
+    const faqQuestions = document.querySelectorAll('.faq-question');
+    faqQuestions.forEach(question => {
+        question.addEventListener('click', () => {
+            const answer = question.nextElementSibling;
+            const isActive = question.classList.contains('active');
+            
+            faqQuestions.forEach(q => {
+                q.classList.remove('active');
+                q.nextElementSibling.classList.remove('active');
+            });
+            
+            if (!isActive) {
+                question.classList.add('active');
+                answer.classList.add('active');
+            }
+        });
+    });
+    
+    // Auth form toggle (unchanged)
+    const loginToggle = document.getElementById('loginToggle');
+    const registerToggle = document.getElementById('registerToggle');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    
+    if (loginToggle && registerToggle) {
+        loginToggle.addEventListener('click', () => {
+            loginToggle.classList.add('active');
+            registerToggle.classList.remove('active');
+            loginForm.classList.add('active');
+            registerForm.classList.remove('active');
+        });
+        
+        registerToggle.addEventListener('click', () => {
+            registerToggle.classList.add('active');
+            loginToggle.classList.remove('active');
+            registerForm.classList.add('active');
+            loginForm.classList.remove('active');
+        });
+    }
+    
+    // Password validation (unchanged)
+    const passwordInput = document.getElementById('registerPassword');
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            validatePassword(this.value, {
+                length: document.getElementById('req-length'),
+                uppercase: document.getElementById('req-uppercase'),
+                number: document.getElementById('req-number'),
+                special: document.getElementById('req-special')
+            });
+        });
+    }
+    
+    // Confirm password validation (unchanged)
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    if (confirmPasswordInput) {
+        confirmPasswordInput.addEventListener('input', validateConfirmPassword);
+    }
+});
+
+// Password validation functions (unchanged from Module 1)
+function validatePassword(password, requirements) {
+    const hasLength = password.length >= 8;
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    if (requirements.length) {
+        requirements.length.classList.toggle('valid', hasLength);
+    }
+    
+    if (requirements.uppercase) {
+        requirements.uppercase.classList.toggle('valid', hasUppercase);
+    }
+    
+    if (requirements.number) {
+        requirements.number.classList.toggle('valid', hasNumber);
+    }
+    
+    if (requirements.special) {
+        requirements.special.classList.toggle('valid', hasSpecial);
+    }
+    
+    return hasLength && hasUppercase && hasNumber && hasSpecial;
+}
+
+function validateConfirmPassword() {
+    const password = document.getElementById('registerPassword')?.value;
+    const confirmPassword = document.getElementById('confirmPassword')?.value;
+    const errorElement = document.getElementById('confirmPasswordError');
+    
+    if (!errorElement) return false;
+    
+    if (password !== confirmPassword) {
+        errorElement.textContent = 'Passwords do not match';
+        return false;
+    } else {
+        errorElement.textContent = '';
+        return true;
+    }
+}
+
+// Book modal function (from Module 1, kept for compatibility)
+function openBookModal(bookId) {
+    const books = {
+        1: {
+            title: "The Silent Echo",
+            author: "Maria Rodriguez",
+            genre: "Fiction",
+            condition: "Like New",
+            description: "A gripping mystery novel about a detective solving a decades-old cold case in a small coastal town. When Detective Anna Reed returns to her hometown after 15 years, she's drawn into the unsolved disappearance of a local girl that haunted her childhood. As she digs deeper, she uncovers secrets that powerful people want to stay buried.",
+            isbn: "978-3-16-148410-0",
+            year: 2022,
+            owner: "Alex Johnson",
+            location: "New York, NY",
+            dateListed: "2023-10-15"
+        },
+        2: {
+            title: "Cosmic Patterns",
+            author: "David Chen",
+            genre: "Science",
+            condition: "Good",
+            description: "Exploring the mathematical patterns that govern the universe, from galaxies to subatomic particles. This accessible science book takes readers on a journey through fractal geometry, Fibonacci sequences in nature, and the hidden mathematical order in what appears to be chaos. Perfect for science enthusiasts and curious minds alike.",
+            isbn: "978-1-23-456789-7",
+            year: 2021,
+            owner: "Sam Wilson",
+            location: "San Francisco, CA",
+            dateListed: "2023-11-02"
+        },
+        3: {
+            title: "The Lost Kingdom",
+            author: "Elena Petrova",
+            genre: "Fantasy",
+            condition: "Excellent",
+            description: "An epic fantasy tale of a forgotten kingdom's rise from the ashes and the hero destined to restore it. In a world where magic has faded, a young blacksmith discovers she is the last heir to a throne no one remembers. With the help of unlikely allies, she must reclaim her birthright before ancient darkness consumes the land.",
+            isbn: "978-0-12-345678-9",
+            year: 2023,
+            owner: "Jordan Lee",
+            location: "Chicago, IL",
+            dateListed: "2023-11-10"
+        }
+    };
+    
+    const book = books[bookId];
+    
+    if (!book) return;
+    
+    const modal = document.getElementById('bookModal');
+    const modalBody = document.getElementById('modalBody');
+    
+    if (!modal || !modalBody) return;
+    
+    const modalContent = `
+        <div class="book-modal-content">
+            <div class="book-modal-header">
+                <h2>${book.title}</h2>
+                <p class="book-modal-author">By ${book.author}</p>
+            </div>
+            
+            <div class="book-modal-details">
+                <div class="detail-row">
+                    <div class="detail-item">
+                        <span class="detail-label">Genre:</span>
+                        <span class="detail-value">${book.genre}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Condition:</span>
+                        <span class="detail-value">${book.condition}</span>
+                    </div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-item">
+                        <span class="detail-label">Published:</span>
+                        <span class="detail-value">${book.year}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">ISBN:</span>
+                        <span class="detail-value">${book.isbn}</span>
+                    </div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-item">
+                        <span class="detail-label">Listed by:</span>
+                        <span class="detail-value">${book.owner}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Location:</span>
+                        <span class="detail-value">${book.location}</span>
+                    </div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-item">
+                        <span class="detail-label">Date Listed:</span>
+                        <span class="detail-value">${book.dateListed}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="book-modal-description">
+                <h3>Description</h3>
+                <p>${book.description}</p>
+            </div>
+            
+            <div class="book-modal-actions">
+                <button class="btn btn-primary btn-large" id="requestExchangeBtn">Request Exchange</button>
+                <button class="btn btn-outline btn-large" id="closeModalBtn">Close</button>
+            </div>
+        </div>
+    `;
+    
+    modalBody.innerHTML = modalContent;
+    modal.classList.add('active');
+    
+    document.getElementById('requestExchangeBtn')?.addEventListener('click', () => {
+        alert('Exchange request sent! The book owner will contact you soon.');
+        modal.classList.remove('active');
+    });
+    
+    document.getElementById('closeModalBtn')?.addEventListener('click', () => {
+        modal.classList.remove('active');
+    });
+}   
+
 }
