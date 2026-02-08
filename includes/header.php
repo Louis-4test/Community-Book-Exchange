@@ -11,7 +11,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($page_title) ? $page_title . ' | ' : ''; ?><?php echo SITE_NAME; ?></title>
-    <link rel="stylesheet" href="<?php echo SITE_URL; ?>/styles/styles.css">
+    <link rel="stylesheet" href="<?php echo SITE_URL; ?>/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -60,7 +60,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 
                 <div class="user-actions">
                     <?php if (is_logged_in()): ?>
-                        <span class="user-greeting">Hi, <?php echo htmlspecialchars(get_current_user()['name'] ?? 'User'); ?></span>
+                        <span class="user-greeting">Hi, <?php echo htmlspecialchars(get_app_user()['name'] ?? 'User'); ?></span>
                         <a href="auth.php?action=logout" class="btn btn-outline">Logout</a>
                         <a href="books.php?action=add" class="btn btn-primary">Add Book</a>
                     <?php else: ?>
