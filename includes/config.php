@@ -1,7 +1,7 @@
 <?php
 // Database configuration (for future modules)
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'book_exchange');
+define('DB_NAME', 'book_exchange');  // Note: your database name has underscore
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
@@ -39,4 +39,20 @@ if (empty($_SESSION['csrf_token'])) {
 if (!file_exists(UPLOAD_PATH)) {
     mkdir(UPLOAD_PATH, 0755, true);
 }
+
+// ===== ADD DATABASE CONNECTION HERE =====
+try {
+    $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+    $options = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ];
+    
+    $db = new PDO($dsn, DB_USER, DB_PASS, $options);
+    
+} catch (PDOException $e) {
+    die("Database connection failed: " . $e->getMessage());
+}
+// ========================================
 ?>

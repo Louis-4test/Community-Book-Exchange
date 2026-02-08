@@ -93,3 +93,42 @@ CREATE INDEX idx_books_genre ON books(genre);
 CREATE INDEX idx_books_state ON books(state);
 CREATE INDEX idx_books_status ON books(status);
 CREATE INDEX idx_books_user_id ON books(user_id);
+
+
+-- Add wishlist table
+CREATE TABLE IF NOT EXISTS wishlist (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    book_id INT NOT NULL,
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_wishlist (user_id, book_id)
+);
+
+-- Add email_verified column to users table
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS verification_token VARCHAR(64),
+ADD COLUMN IF NOT EXISTS reset_token VARCHAR(64),
+ADD COLUMN IF NOT EXISTS reset_token_expiry DATETIME;
+
+-- Add last_login column to users table
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS last_login DATETIME;
+
+-- Create user_sessions table for persistent logins
+CREATE TABLE IF NOT EXISTS user_sessions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    session_token VARCHAR(64) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Add indexes for better performance
+CREATE INDEX idx_wishlist_user_id ON wishlist(user_id);
+CREATE INDEX idx_wishlist_book_id ON wishlist(book_id);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_user_sessions_token ON user_sessions(session_token);

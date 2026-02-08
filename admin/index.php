@@ -43,50 +43,13 @@ $stats = get_dashboard_statistics();
     </header>
     
     <!-- Admin Sidebar -->
-    <div class="admin-container">
-        <nav class="admin-sidebar">
-            <ul class="admin-menu">
-                <li class="active">
-                    <a href="index.php">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="books.php">
-                        <i class="fas fa-book"></i>
-                        <span>Manage Books</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="books.php?action=add">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>Add New Book</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="users.php">
-                        <i class="fas fa-users"></i>
-                        <span>Manage Users</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="messages.php">
-                        <i class="fas fa-envelope"></i>
-                        <span>Contact Messages</span>
-                        <?php if ($stats['unread_messages'] > 0): ?>
-                        <span class="badge badge-danger"><?php echo $stats['unread_messages']; ?></span>
-                        <?php endif; ?>
-                    </a>
-                </li>
-                <li>
-                    <a href="settings.php">
-                        <i class="fas fa-cog"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
+    <?php 
+    // Include sidebar
+    $sidebar_file = __DIR__ . '/admin-sidebar.php';
+    if (file_exists($sidebar_file)) {
+        include $sidebar_file;
+    }
+    ?>
         
         <!-- Main Content -->
         <main class="admin-main">
@@ -207,7 +170,7 @@ $stats = get_dashboard_statistics();
                             <i class="fas fa-envelope"></i>
                             <span>Check Messages</span>
                         </a>
-                        <a href="settings.php" class="quick-action">
+                        <a href="../profile.php" class="quick-action">
                             <i class="fas fa-cog"></i>
                             <span>Site Settings</span>
                         </a>
@@ -219,4 +182,8 @@ $stats = get_dashboard_statistics();
     
     <script src="../js/admin.js"></script>
 </body>
+
 </html>
+<?php
+require_once 'admin-footer.php';
+?>

@@ -4,12 +4,36 @@ require_once 'includes/functions.php';
 
 $page_title = 'Browse Books';
 
+// Handle wishlist actions via AJAX/PRG
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    // Validate CSRF token
+    if (!validate_csrf_token($_POST['csrf_token'] ?? '')) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Invalid CSRF token']);
+        exit;
+    }
+    
+    $action = $_POST['action'];
+    $book_id = $_POST['book_id'] ?? null;
+    
+    if ($action === 'toggle_wishlist' && $book_id) {
+        if (!is_logged_in()) {
+            echo json_encode(['success' => false, 'error' => 'Please log in to use wishlist']);
+            exit;
+        }
+        
+        $result = toggle_wishlist($book_id);
+        echo json_encode($result);
+        exit;
+    }
+}
+
 // Handle filters from GET request
 $filters = [];
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $filters['search'] = isset($_GET['search']) ? sanitize_input($_GET['search']) : '';
     $filters['genre'] = isset($_GET['genre']) ? sanitize_input($_GET['genre']) : '';
-    $filters['condition'] = isset($_GET['condition']) ? sanitize_input($_GET['condition']) : '';
+    $filters['state'] = isset($_GET['state']) ? sanitize_input($_GET['state']) : '';
     $filters['exchange_type'] = isset($_GET['exchange_type']) ? sanitize_input($_GET['exchange_type']) : '';
     $filters['sort'] = isset($_GET['sort']) ? sanitize_input($_GET['sort']) : 'newest';
 }
@@ -41,6 +65,9 @@ require_once 'includes/header.php';
             <a href="add-book.php" class="btn btn-primary">
                 <i class="fas fa-plus"></i> List Your Book
             </a>
+            <a href="my-books.php" class="btn btn-outline">
+                <i class="fas fa-book"></i> My Books
+            </a>
         </div>
         <?php endif; ?>
     </div>
@@ -71,13 +98,13 @@ require_once 'includes/header.php';
                     </div>
                     
                     <div class="filter-group">
-                        <label for="conditionFilter">Condition</label>
-                        <select name="condition" id="conditionFilter">
-                            <option value="">All Conditions</option>
-                            <?php foreach (get_condition_options() as $condition): ?>
-                            <option value="<?php echo $condition; ?>" 
-                                    <?php echo $filters['condition'] == $condition ? 'selected' : ''; ?>>
-                                <?php echo $condition; ?>
+                        <label for="stateFilter">state</label>
+                        <select name="state" id="stateFilter">
+                            <option value="">All states</option>
+                            <?php foreach (get_state_options() as $state): ?>
+                            <option value="<?php echo $state; ?>" 
+                                    <?php echo $filters['state'] == $state ? 'selected' : ''; ?>>
+                                <?php echo $state; ?>
                             </option>
                             <?php endforeach; ?>
                         </select>
@@ -98,7 +125,7 @@ require_once 'includes/header.php';
                             <option value="newest" <?php echo $filters['sort'] == 'newest' ? 'selected' : ''; ?>>Newest</option>
                             <option value="oldest" <?php echo $filters['sort'] == 'oldest' ? 'selected' : ''; ?>>Oldest</option>
                             <option value="title" <?php echo $filters['sort'] == 'title' ? 'selected' : ''; ?>>Title A-Z</option>
-                            <option value="condition" <?php echo $filters['sort'] == 'condition' ? 'selected' : ''; ?>>Best Condition</option>
+                            <option value="state" <?php echo $filters['sort'] == 'state' ? 'selected' : ''; ?>>Best state</option>
                         </select>
                     </div>
                     
@@ -116,13 +143,25 @@ require_once 'includes/header.php';
             </div>
             
             <div class="books-grid" id="booksGrid">
-                <?php foreach ($books as $book): ?>
-                <div class="book-card">
+                <?php foreach ($books as $book): 
+                    $is_in_wishlist = is_in_wishlist($book['id']);
+                    $is_owner = is_logged_in() && $_SESSION['user_id'] == $book['user_id'];
+                ?>
+                <div class="book-card" data-book-id="<?php echo $book['id']; ?>">
                     <div class="book-cover">
                         <img src="<?php echo get_image_url($book['image_url']); ?>" alt="<?php echo htmlspecialchars($book['title']); ?> Cover">
-                        <span class="book-condition"><?php echo $book['condition']; ?></span>
+                        <span class="book-state"><?php echo $book['state']; ?></span>
                         <?php if ($book['exchange_type'] == 'giveaway'): ?>
                         <span class="book-exchange-type giveaway">Giveaway</span>
+                        <?php endif; ?>
+                        
+                        <!-- Wishlist Button -->
+                        <?php if (is_logged_in() && !$is_owner): ?>
+                        <button class="wishlist-btn <?php echo $is_in_wishlist ? 'active' : ''; ?>" 
+                                data-book-id="<?php echo $book['id']; ?>"
+                                title="<?php echo $is_in_wishlist ? 'Remove from wishlist' : 'Add to wishlist'; ?>">
+                            <i class="fas fa-heart"></i>
+                        </button>
                         <?php endif; ?>
                     </div>
                     <div class="book-info">
@@ -142,7 +181,7 @@ require_once 'includes/header.php';
                             </div>
                             <div class="book-actions">
                                 <button class="btn-details" data-book="<?php echo $book['id']; ?>">View Details</button>
-                                <?php if (is_logged_in() && $_SESSION['user_id'] != $book['user_id']): ?>
+                                <?php if (is_logged_in() && !$is_owner): ?>
                                 <button class="btn-request" data-book="<?php echo $book['id']; ?>">Request Exchange</button>
                                 <?php endif; ?>
                             </div>
@@ -176,6 +215,139 @@ require_once 'includes/header.php';
         <?php endif; ?>
     </section>
 </div>
+
+<!-- Wishlist AJAX Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Wishlist button functionality
+    document.querySelectorAll('.wishlist-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const bookId = this.getAttribute('data-book-id');
+            const isActive = this.classList.contains('active');
+            
+            // Visual feedback
+            this.classList.add('loading');
+            this.disabled = true;
+            
+            // Send AJAX request
+            fetch('books.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'toggle_wishlist',
+                    book_id: bookId,
+                    csrf_token: '<?php echo $_SESSION['csrf_token']; ?>'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Toggle active state
+                    if (data.action === 'removed') {
+                        this.classList.remove('active');
+                        this.title = 'Add to wishlist';
+                        showToast('Book removed from wishlist', 'success');
+                        
+                        // Update wishlist count in header
+                        updateWishlistCount(-1);
+                    } else {
+                        this.classList.add('active');
+                        this.title = 'Remove from wishlist';
+                        showToast('Book added to wishlist', 'success');
+                        
+                        // Update wishlist count in header
+                        updateWishlistCount(1);
+                    }
+                } else {
+                    if (data.error === 'Please log in to use wishlist') {
+                        showToast('Please log in to use wishlist', 'error');
+                        setTimeout(() => {
+                            window.location.href = 'auth.php';
+                        }, 1500);
+                    } else {
+                        showToast(data.error || 'An error occurred', 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred. Please try again.', 'error');
+            })
+            .finally(() => {
+                this.classList.remove('loading');
+                this.disabled = false;
+            });
+        });
+    });
+    
+    // Update wishlist count in header
+    function updateWishlistCount(change) {
+        const wishlistCountElement = document.querySelector('.wishlist-count');
+        const wishlistLink = document.querySelector('a[href="wishlist.php"] .wishlist-count');
+        
+        let currentCount = 0;
+        if (wishlistCountElement) {
+            currentCount = parseInt(wishlistCountElement.textContent);
+        }
+        
+        const newCount = Math.max(0, currentCount + change);
+        
+        // Update or create count badge
+        if (newCount > 0) {
+            if (wishlistCountElement) {
+                wishlistCountElement.textContent = newCount;
+            } else if (wishlistLink) {
+                const badge = document.createElement('span');
+                badge.className = 'wishlist-count';
+                badge.textContent = newCount;
+                wishlistLink.appendChild(badge);
+            }
+        } else {
+            // Remove count badge if count is 0
+            if (wishlistCountElement) {
+                wishlistCountElement.remove();
+            }
+        }
+    }
+    
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        // Remove existing toasts
+        document.querySelectorAll('.toast').forEach(toast => toast.remove());
+        
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <span>${message}</span>
+                <button class="toast-close">&times;</button>
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Show toast
+        setTimeout(() => toast.classList.add('show'), 10);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+        
+        // Close button
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        });
+    }
+});
+</script>
 
 <?php
 require_once 'includes/footer.php';

@@ -68,7 +68,7 @@ require_once 'includes/header.php';
         <div class="book-card">
             <div class="book-cover">
                 <img src="<?php echo get_image_url($book['image_url']); ?>" alt="<?php echo htmlspecialchars($book['title']); ?> Cover">
-                <span class="book-condition"><?php echo $book['condition']; ?></span>
+                <span class="book-state"><?php echo $book['state']; ?></span>
                 <?php if ($book['exchange_type'] == 'giveaway'): ?>
                 <span class="book-exchange-type giveaway">Giveaway</span>
                 <?php endif; ?>

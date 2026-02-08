@@ -166,6 +166,124 @@ class UserModel {
         $sql = "DELETE FROM users WHERE id = ?";
         return Database::query($sql, [$id]);
     }
+
+    /**
+     * Create user with verification token
+     */
+    public static function createUserWithVerification($name, $email, $password_hash, $verification_token) {
+        $sql = "INSERT INTO users (name, email, password_hash, verification_token) VALUES (?, ?, ?, ?)";
+        Database::query($sql, [$name, $email, $password_hash, $verification_token]);
+        return Database::lastInsertId();
+    }
+    
+    /**
+     * Verify email address
+     */
+    public static function verifyEmail($email) {
+        $sql = "UPDATE users SET email_verified = TRUE, verification_token = NULL WHERE email = ?";
+        return Database::query($sql, [$email]);
+    }
+    
+    /**
+     * Update last login time
+     */
+    public static function updateLastLogin($user_id) {
+        $sql = "UPDATE users SET last_login = NOW() WHERE id = ?";
+        return Database::query($sql, [$user_id]);
+    }
+    
+    /**
+     * Create remember token
+     */
+    public static function createRememberToken($user_id, $token, $expiry) {
+        $sql = "INSERT INTO user_sessions (user_id, session_token, expires_at) VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE session_token = VALUES(session_token), expires_at = VALUES(expires_at)";
+        return Database::query($sql, [$user_id, $token, $expiry]);
+    }
+    
+    /**
+     * Get session by token
+     */
+    public static function getSessionByToken($token) {
+        $sql = "SELECT * FROM user_sessions WHERE session_token = ?";
+        return Database::fetch($sql, [$token]);
+    }
+    
+    /**
+     * Update token expiry
+     */
+    public static function updateTokenExpiry($token, $expiry) {
+        $sql = "UPDATE user_sessions SET expires_at = ? WHERE session_token = ?";
+        return Database::query($sql, [$expiry, $token]);
+    }
+    
+    /**
+     * Delete remember token
+     */
+    public static function deleteRememberToken($token) {
+        $sql = "DELETE FROM user_sessions WHERE session_token = ?";
+        return Database::query($sql, [$token]);
+    }
+    
+    /**
+     * Set password reset token
+     */
+    public static function setResetToken($user_id, $token, $expiry) {
+        $sql = "UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?";
+        return Database::query($sql, [$token, $expiry, $user_id]);
+    }
+    
+    /**
+     * Get user by reset token
+     */
+    public static function getUserByResetToken($token) {
+        $sql = "SELECT * FROM users WHERE reset_token = ?";
+        return Database::fetch($sql, [$token]);
+    }
+    
+    /**
+     * Clear reset token
+     */
+    public static function clearResetToken($user_id) {
+        $sql = "UPDATE users SET reset_token = NULL, reset_token_expiry = NULL WHERE id = ?";
+        return Database::query($sql, [$user_id]);
+    }
+    
+    /**
+     * Update user profile
+     */
+    public static function updateProfile($user_id, $data) {
+        $sql = "UPDATE users SET name = ?, location = ?, bio = ? WHERE id = ?";
+        return Database::query($sql, [
+            $data['name'],
+            $data['location'] ?? null,
+            $data['bio'] ?? null,
+            $user_id
+        ]);
+    }
+    
+    /**
+     * Get user's books
+     */
+    public static function getUserBooks($user_id, $limit = null, $offset = 0) {
+        $sql = "SELECT * FROM books WHERE user_id = ? ORDER BY created_at DESC";
+        
+        if ($limit !== null) {
+            $sql .= " LIMIT ? OFFSET ?";
+            return Database::fetchAll($sql, [$user_id, $limit, $offset]);
+        }
+        
+        return Database::fetchAll($sql, [$user_id]);
+    }
+    
+    /**
+     * Count user's books
+     */
+    public static function countUserBooks($user_id) {
+        $sql = "SELECT COUNT(*) as count FROM books WHERE user_id = ?";
+        $result = Database::fetch($sql, [$user_id]);
+        return $result['count'];
+    }
 }
 
 /**

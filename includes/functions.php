@@ -1,5 +1,6 @@
 <?php
 require_once 'database.php';
+require_once __DIR__ . '/auth.php';
 
 /**
  * Helper functions for the Book Exchange application
@@ -214,9 +215,9 @@ function get_image_url($filename) {
 }
 
 /**
- * Get book condition options
+ * Get book state options
  */
-function get_condition_options() {
+function get_state_options() {
     return ['New', 'Like New', 'Good', 'Fair', 'Poor'];
 }
 
@@ -268,8 +269,8 @@ function validate_book_data($data) {
         $errors['genre'] = 'Genre is required';
     }
     
-    if (empty($data['condition'])) {
-        $errors['condition'] = 'Condition is required';
+    if (empty($data['state'])) {
+        $errors['state'] = 'state is required';
     }
     
     if (empty($data['description'])) {
@@ -365,12 +366,217 @@ function require_login() {
     }
 }
 
-function get_state_options() {
-    return [
-        'new' => 'New',
-        'used' => 'Used',
-        'fair' => 'Fair',
-        'old' => 'Old'
-    ];
+/**
+ * Require authentication
+ */
+function require_auth() {
+    Auth::requireAuth();
+}
+
+/**
+ * Require admin authentication
+ */
+function require_admin_auth() {
+    Auth::requireAdmin();
+}
+
+/**
+ * Add book to wishlist
+ */
+function add_to_wishlist($book_id) {
+    if (!is_logged_in()) {
+        return ['success' => false, 'error' => 'Please log in to add to wishlist'];
+    }
+    
+    return Wishlist::add(Auth::userId(), $book_id);
+}
+
+/**
+ * Remove book from wishlist
+ */
+function remove_from_wishlist($book_id) {
+    if (!is_logged_in()) {
+        return ['success' => false, 'error' => 'Please log in to modify wishlist'];
+    }
+    
+    return Wishlist::remove(Auth::userId(), $book_id);
+}
+
+/**
+ * Check if book is in wishlist
+ */
+function is_in_wishlist($book_id) {
+    if (!is_logged_in()) {
+        return false;
+    }
+    
+    return Wishlist::has(Auth::userId(), $book_id);
+}
+
+/**
+ * Get user's wishlist
+ */
+function get_user_wishlist() {
+    if (!is_logged_in()) {
+        return [];
+    }
+    
+    return Wishlist::getUserWishlist(Auth::userId());
+}
+
+/**
+ * Toggle wishlist status
+ */
+function toggle_wishlist($book_id) {
+    if (!is_logged_in()) {
+        return ['success' => false, 'error' => 'Please log in to modify wishlist'];
+    }
+    
+    return Wishlist::toggle(Auth::userId(), $book_id);
+}
+
+/**
+ * Get wishlist count for current user
+ */
+function get_wishlist_count() {
+    if (!is_logged_in()) {
+        return 0;
+    }
+    
+    return Wishlist::count(Auth::userId());
+}
+
+/**
+ * Apply PRG pattern: Store POST data and redirect to GET
+ */
+function apply_prg($redirect_url, $data_key = 'prg_data') {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Store POST data in session
+        $_SESSION[$data_key] = $_POST;
+        
+        // Store files in session if any
+        if (!empty($_FILES)) {
+            $_SESSION[$data_key . '_files'] = $_FILES;
+        }
+        
+        // Redirect to GET
+        header('Location: ' . $redirect_url);
+        exit;
+    }
+    
+    // On GET request, retrieve data from session
+    if (isset($_SESSION[$data_key])) {
+        $data = $_SESSION[$data_key];
+        $files = $_SESSION[$data_key . '_files'] ?? [];
+        
+        // Clear session data
+        unset($_SESSION[$data_key], $_SESSION[$data_key . '_files']);
+        
+        return ['post' => $data, 'files' => $files];
+    }
+    
+    return null;
+}
+
+/**
+ * Handle form submission with PRG pattern
+ */
+function handle_form_submission($form_handler, $success_redirect, $error_redirect = null) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        return null;
+    }
+    
+    // Validate CSRF token
+    if (!validate_csrf_token($_POST['csrf_token'] ?? '')) {
+        set_flash_message('error', 'Invalid form submission. Please try again.');
+        header('Location: ' . ($error_redirect ?? $_SERVER['HTTP_REFERER'] ?? 'index.php'));
+        exit;
+    }
+    
+    // Call form handler
+    $result = $form_handler($_POST, $_FILES);
+    
+    if ($result['success']) {
+        set_flash_message('success', $result['message'] ?? 'Operation completed successfully.');
+        header('Location: ' . $success_redirect);
+    } else {
+        set_flash_message('error', $result['error'] ?? 'An error occurred. Please try again.');
+        
+        // Store form data for repopulation
+        $_SESSION['form_data'] = $_POST;
+        $_SESSION['form_errors'] = $result['errors'] ?? [];
+        
+        header('Location: ' . ($error_redirect ?? $_SERVER['HTTP_REFERER'] ?? 'index.php'));
+    }
+    
+    exit;
+}
+
+/**
+ * Get form data from session (for repopulation after PRG)
+ */
+function get_form_data($key = 'form_data') {
+    $data = $_SESSION[$key] ?? [];
+    unset($_SESSION[$key]);
+    return $data;
+}
+
+/**
+ * Get form errors from session
+ */
+function get_form_errors($key = 'form_errors') {
+    $errors = $_SESSION[$key] ?? [];
+    unset($_SESSION[$key]);
+    return $errors;
+}
+
+/**
+ * Generate a unique form ID for CSRF protection
+ */
+function generate_form_id() {
+    return bin2hex(random_bytes(16));
+}
+
+/**
+ * Validate form ID
+ */
+function validate_form_id($submitted_id) {
+    if (!isset($_SESSION['form_ids'][$submitted_id])) {
+        return false;
+    }
+    
+    // Remove used form ID
+    unset($_SESSION['form_ids'][$submitted_id]);
+    
+    // Clean up old form IDs (older than 1 hour)
+    $one_hour_ago = time() - 3600;
+    foreach ($_SESSION['form_ids'] as $id => $timestamp) {
+        if ($timestamp < $one_hour_ago) {
+            unset($_SESSION['form_ids'][$id]);
+        }
+    }
+    
+    return true;
+}
+
+/**
+ * Log user activity
+ */
+function log_activity($action, $details = null) {
+    if (!is_logged_in()) {
+        return;
+    }
+    
+    $user_id = Auth::userId();
+    $sql = "INSERT INTO user_activity (user_id, action, details, ip_address, user_agent) 
+            VALUES (?, ?, ?, ?, ?)";
+    
+    Database::query($sql, [
+        $user_id,
+        $action,
+        $details ? json_encode($details) : null,
+        $_SERVER['REMOTE_ADDR'],
+        $_SERVER['HTTP_USER_AGENT']
+    ]);
 }
 ?>
