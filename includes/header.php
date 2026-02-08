@@ -4,6 +4,9 @@ require_once 'functions.php';
 
 // Get current page for active navigation highlighting
 $current_page = basename($_SERVER['PHP_SELF']);
+
+// Get wishlist count for logged-in users
+$wishlist_count = is_logged_in() ? get_wishlist_count() : 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -54,15 +57,53 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <ul class="nav-menu" id="navMenu">
                     <li><a href="index.php" class="<?php echo $current_page == 'index.php' ? 'active' : ''; ?>">Home</a></li>
                     <li><a href="books.php" class="<?php echo $current_page == 'books.php' ? 'active' : ''; ?>">Browse Books</a></li>
-                    <li><a href="auth.php" class="<?php echo $current_page == 'auth.php' || $current_page == 'process-auth.php' ? 'active' : ''; ?>"><?php echo is_logged_in() ? 'My Account' : 'Login/Register'; ?></a></li>
+                    <?php if (is_logged_in()): ?>
+                    <li><a href="my-books.php" class="<?php echo $current_page == 'my-books.php' ? 'active' : ''; ?>">My Books</a></li>
+                    <li>
+                        <a href="wishlist.php" class="<?php echo $current_page == 'wishlist.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-heart"></i> Wishlist
+                            <?php if ($wishlist_count > 0): ?>
+                            <span class="wishlist-count"><?php echo $wishlist_count; ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                    <?php endif; ?>
                     <li><a href="about.php" class="<?php echo $current_page == 'about.php' ? 'active' : ''; ?>">About</a></li>
                 </ul>
                 
                 <div class="user-actions">
                     <?php if (is_logged_in()): ?>
-                        <span class="user-greeting">Hi, <?php echo htmlspecialchars(get_app_user()['name'] ?? 'User'); ?></span>
-                        <a href="auth.php?action=logout" class="btn btn-outline">Logout</a>
-                        <a href="books.php?action=add" class="btn btn-primary">Add Book</a>
+                        <div class="user-dropdown">
+                            <button class="user-dropdown-toggle">
+                                <i class="fas fa-user-circle"></i>
+                                <span><?php echo htmlspecialchars($_SESSION['user_name']); ?></span>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="user-dropdown-menu">
+                                <a href="profile.php" class="dropdown-item">
+                                    <i class="fas fa-user"></i> My Profile
+                                </a>
+                                <a href="my-books.php" class="dropdown-item">
+                                    <i class="fas fa-book"></i> My Books
+                                </a>
+                                <a href="wishlist.php" class="dropdown-item">
+                                    <i class="fas fa-heart"></i> Wishlist
+                                    <?php if ($wishlist_count > 0): ?>
+                                    <span class="badge"><?php echo $wishlist_count; ?></span>
+                                    <?php endif; ?>
+                                </a>
+                                <?php if (is_admin()): ?>
+                                <div class="dropdown-divider"></div>
+                                <a href="admin/index.php" class="dropdown-item">
+                                    <i class="fas fa-cog"></i> Admin Panel
+                                </a>
+                                <?php endif; ?>
+                                <div class="dropdown-divider"></div>
+                                <a href="auth.php?action=logout" class="dropdown-item text-danger">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a>
+                            </div>
+                        </div>
                     <?php else: ?>
                         <a href="auth.php" class="btn btn-outline">Sign In</a>
                         <a href="auth.php?register=true" class="btn btn-primary">Register</a>
