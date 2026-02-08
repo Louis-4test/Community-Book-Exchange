@@ -4,12 +4,15 @@ require_once 'includes/functions.php';
 
 $page_title = 'Home';
 $greeting = get_time_based_greeting();
-$featured_books = get_featured_books();
+$featured_books = get_featured_books(3);
 
 // Check for registration success
 if (isset($_GET['registered']) && $_GET['registered'] == 'true') {
     set_flash_message('success', 'Registration successful! Welcome to BookExchange.');
 }
+
+// Get statistics for homepage
+$stats = get_dashboard_statistics();
 
 require_once 'includes/header.php';
 ?>
@@ -18,14 +21,38 @@ require_once 'includes/header.php';
 <section class="hero">
     <div class="hero-content">
         <h1>Share Books, Share Knowledge</h1>
-        <p class="greeting"><?php echo $greeting; ?>! Join our community of book lovers to exchange books, discover new reads, and connect with fellow readers.</p>
+        <p class="greeting"><?php echo $greeting; ?>! Join our community of <?php echo $stats['total_users']; ?> book lovers to exchange books, discover new reads, and connect with fellow readers.</p>
         <div class="hero-actions">
-            <a href="books.php" class="btn btn-primary btn-large">Browse Books</a>
+            <a href="books.php" class="btn btn-primary btn-large">Browse <?php echo $stats['available_books']; ?> Books</a>
+            <?php if (!is_logged_in()): ?>
             <a href="auth.php?register=true" class="btn btn-secondary btn-large">Join Now</a>
+            <?php endif; ?>
         </div>
     </div>
     <div class="hero-image">
         <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80" alt="Books on shelf">
+    </div>
+</section>
+
+<!-- Community Stats -->
+<section class="stats-section">
+    <div class="stats-container">
+        <div class="stat-item">
+            <div class="stat-number"><?php echo $stats['total_books']; ?></div>
+            <div class="stat-label">Books Listed</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number"><?php echo $stats['available_books']; ?></div>
+            <div class="stat-label">Available Now</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number"><?php echo $stats['total_users']; ?></div>
+            <div class="stat-label">Community Members</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number"><?php echo $stats['unique_genres']; ?></div>
+            <div class="stat-label">Genres</div>
+        </div>
     </div>
 </section>
 
@@ -40,17 +67,20 @@ require_once 'includes/header.php';
         <?php foreach ($featured_books as $book): ?>
         <div class="book-card">
             <div class="book-cover">
-                <img src="<?php echo $book['image_url']; ?>" alt="<?php echo htmlspecialchars($book['title']); ?> Cover">
+                <img src="<?php echo get_image_url($book['image_url']); ?>" alt="<?php echo htmlspecialchars($book['title']); ?> Cover">
                 <span class="book-condition"><?php echo $book['condition']; ?></span>
+                <?php if ($book['exchange_type'] == 'giveaway'): ?>
+                <span class="book-exchange-type giveaway">Giveaway</span>
+                <?php endif; ?>
             </div>
             <div class="book-info">
                 <h3 class="book-title"><?php echo htmlspecialchars($book['title']); ?></h3>
                 <p class="book-author">By <?php echo htmlspecialchars($book['author']); ?></p>
                 <div class="book-genre"><?php echo $book['genre']; ?></div>
-                <p class="book-description"><?php echo htmlspecialchars($book['description']); ?></p>
+                <p class="book-description"><?php echo htmlspecialchars(substr($book['description'], 0, 100)); ?>...</p>
                 <div class="book-actions">
                     <button class="btn-details" data-book="<?php echo $book['id']; ?>">View Details</button>
-                    <button class="btn-request">Request Exchange</button>
+                    <button class="btn-request" data-book="<?php echo $book['id']; ?>">Request Exchange</button>
                 </div>
             </div>
         </div>

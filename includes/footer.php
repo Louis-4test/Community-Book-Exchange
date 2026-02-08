@@ -28,7 +28,7 @@
                 <ul class="contact-info">
                     <li><i class="fas fa-map-marker-alt"></i> +237 Carrefour Etou-egbe, Yaounde Cameroon</li>
                     <li><i class="fas fa-phone"></i> +237 679455965</li>
-                    <li><i class="fas fa-envelope"></i> <?php fola.louis@yibs.org ?></li>
+                    <li><i class="fas fa-envelope"></i> <?php echo htmlspecialchars('fola.louis@yibs.org'); ?></li>
                 </ul>
             </div>
         </div>
