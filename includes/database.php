@@ -505,6 +505,191 @@ class BookModel {
                 FROM books";
         return Database::fetch($sql);
     }
+
+    /**
+     * Search books with AJAX pagination
+     */
+    public static function searchBooksAjax($search, $filters = [], $limit = 10, $offset = 0) {
+        $sql = "SELECT b.*, u.name as owner_name, u.location as owner_location 
+                FROM books b 
+                LEFT JOIN users u ON b.user_id = u.id 
+                WHERE b.status = 'available'";
+        
+        $params = [];
+        $conditions = [];
+        
+        // Apply search
+        if (!empty($search)) {
+            $conditions[] = "MATCH(b.title, b.author, b.description, b.genre) AGAINST(? IN BOOLEAN MODE)";
+            $params[] = $search . '*';
+            
+            // Log search if user is logged in
+            if (isset($_SESSION['user_id'])) {
+                self::logSearch($_SESSION['user_id'], $search);
+            }
+        }
+        
+        // Apply filters
+        if (!empty($filters['genre'])) {
+            $conditions[] = "b.genre = ?";
+            $params[] = $filters['genre'];
+        }
+        
+        if (!empty($filters['condition'])) {
+            $conditions[] = "b.condition = ?";
+            $params[] = $filters['condition'];
+        }
+        
+        if (!empty($filters['exchange_type'])) {
+            $conditions[] = "b.exchange_type = ?";
+            $params[] = $filters['exchange_type'];
+        }
+        
+        // Combine conditions
+        if (!empty($conditions)) {
+            $sql .= " AND " . implode(" AND ", $conditions);
+        }
+        
+        // Apply sorting based on search relevance or default
+        if (!empty($search)) {
+            $sql .= " ORDER BY MATCH(b.title, b.author, b.description, b.genre) AGAINST(? IN BOOLEAN MODE) DESC";
+            $params[] = $search . '*';
+        } else {
+            $sql .= " ORDER BY b.created_at DESC";
+        }
+        
+        // Add pagination
+        $sql .= " LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+        
+        return Database::fetchAll($sql, $params);
+    }
+    
+    /**
+     * Get book covers from cache or Open Library API
+     */
+    public static function getBookCover($isbn, $title = null, $author = null) {
+        if (empty($isbn)) {
+            return self::getDefaultCover($title, $author);
+        }
+        
+        // Check cache first
+        $cached = self::getCachedCover($isbn);
+        if ($cached) {
+            return $cached;
+        }
+        
+        // Fetch from Open Library API
+        $cover_url = self::fetchOpenLibraryCover($isbn);
+        
+        // Cache the result
+        if ($cover_url) {
+            self::cacheCover($isbn, $cover_url);
+        }
+        
+        return $cover_url ?: self::getDefaultCover($title, $author);
+    }
+    
+    /**
+     * Get cached cover from database
+     */
+    private static function getCachedCover($isbn) {
+        $sql = "SELECT cover_url FROM book_api_cache WHERE isbn = ? AND last_updated > DATE_SUB(NOW(), INTERVAL 30 DAY)";
+        $result = Database::fetch($sql, [$isbn]);
+        return $result['cover_url'] ?? null;
+    }
+    
+    /**
+     * Cache cover URL
+     */
+    private static function cacheCover($isbn, $cover_url, $api_data = null) {
+        $sql = "INSERT INTO book_api_cache (isbn, cover_url, api_data) VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE cover_url = VALUES(cover_url), api_data = VALUES(api_data)";
+        Database::query($sql, [$isbn, $cover_url, $api_data]);
+    }
+    
+    /**
+     * Fetch cover from Open Library API
+     */
+    private static function fetchOpenLibraryCover($isbn) {
+        // Remove dashes from ISBN
+        $clean_isbn = preg_replace('/[^0-9X]/i', '', $isbn);
+        
+        // Try different cover sizes
+        $sizes = ['L', 'M', 'S'];
+        $base_url = 'https://covers.openlibrary.org/b/isbn/';
+        
+        foreach ($sizes as $size) {
+            $url = $base_url . $clean_isbn . '-' . $size . '.jpg';
+            
+            // Check if URL exists
+            $headers = @get_headers($url);
+            if ($headers && strpos($headers[0], '200') !== false) {
+                return $url;
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Generate default cover based on book info
+     */
+    private static function getDefaultCover($title = null, $author = null) {
+        // Use Unsplash API for default book covers
+        $unsplash_url = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80';
+        
+        // You could generate a dynamic cover with title/author
+        // For now, return a static image
+        return $unsplash_url;
+    }
+    
+    /**
+     * Log search for analytics
+     */
+    private static function logSearch($user_id, $query) {
+        $sql = "INSERT INTO search_logs (user_id, search_query) VALUES (?, ?)";
+        Database::query($sql, [$user_id, $query]);
+    }
+    
+    /**
+     * Get popular searches
+     */
+    public static function getPopularSearches($limit = 5) {
+        $sql = "SELECT search_query, COUNT(*) as count 
+                FROM search_logs 
+                WHERE created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)
+                GROUP BY search_query 
+                ORDER BY count DESC 
+                LIMIT ?";
+        return Database::fetchAll($sql, [$limit]);
+    }
+    
+    /**
+     * Get recently viewed books for current user
+     */
+    public static function getRecentlyViewed($limit = 5) {
+        if (!isset($_SESSION['user_id'])) {
+            return [];
+        }
+        
+        // This would normally come from a view_logs table
+        // For now, return recently added books
+        $sql = "SELECT b.* FROM books b 
+                WHERE b.status = 'available' 
+                ORDER BY b.created_at DESC 
+                LIMIT ?";
+        return Database::fetchAll($sql, [$limit]);
+    }
+    
+    /**
+     * Increment view count for a book
+     */
+    public static function incrementViewCount($book_id) {
+        $sql = "UPDATE books SET view_count = view_count + 1 WHERE id = ?";
+        Database::query($sql, [$book_id]);
+    }
 }
 
 /**

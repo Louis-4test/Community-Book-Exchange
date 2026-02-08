@@ -35,11 +35,6 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// Create uploads directory if it doesn't exist
-if (!file_exists(UPLOAD_PATH)) {
-    mkdir(UPLOAD_PATH, 0755, true);
-}
-
 // ===== ADD DATABASE CONNECTION HERE =====
 try {
     $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
