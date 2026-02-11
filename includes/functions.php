@@ -579,4 +579,5 @@ function log_activity($action, $details = null) {
         $_SERVER['HTTP_USER_AGENT']
     ]);
 }
+ 
 ?>
